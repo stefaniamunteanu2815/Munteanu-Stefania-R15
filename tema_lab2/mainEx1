@@ -1,0 +1,16 @@
+#include "NumberList.h"
+int main() 
+{
+    NumberList lista;
+    lista.Init();
+
+    lista.Add(15);
+    lista.Add(2);
+    lista.Add(8);
+    lista.Add(31);
+
+    lista.Sort();
+    lista.Print();
+
+    return 0;
+}
