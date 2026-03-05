@@ -1,0 +1,22 @@
+#include <iostream>
+#include "Math.h"
+using namespace std;
+int main()
+{
+	std::cout << "Add(3, 2): "<< Math::Add(3, 2) << "\n";
+	std::cout << "Add(5, 6, 7): "<< Math::Add(5, 6, 7) << "\n";
+	std::cout << "Add(5.6, 9.8): "<< Math::Add(5.7, 9.8) << "\n";
+	std::cout << "Add(4.2, 3.3, 7.6): "<< Math::Add(4.2, 3.3, 7.6) << "\n";
+	std::cout << "Mul(3, 2): "<< Math::Mul(3, 2) << "\n";
+	std::cout << "Mul(5, 6, 7): "<< Math::Mul(5, 6, 7) << "\n";
+	std::cout << "Mul(5.6, 9.8): "<< Math::Mul(5.6, 9.8) << "\n";
+	std::cout << "Mul(4.2, 3.3, 7.6): "<< Math::Mul(4.2, 3.3, 7.6) << "\n";
+	std::cout << "Add Variadic(4, 2, 3, 1, 5): " << Math::Add(4, 2, 3, 1, 5) << "\n";
+	char* result = Math::Add("Codul", "merge");
+	if (result != nullptr) 
+	{
+		std::cout << "String Add: " << result << "\n";
+		delete[] result;
+	}
+	return 0;
+}
