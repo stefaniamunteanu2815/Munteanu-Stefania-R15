@@ -1,0 +1,136 @@
+#include <cstdio>
+template<class KEY, class VALUE>
+class Map 
+{
+private:
+    struct Element 
+    {
+        KEY key;
+        VALUE value;
+        int index;
+    };
+
+    Element* elements;
+    int current_size;
+    int capacity;
+
+    void resize() 
+    {
+        if (capacity == 0) capacity = 1;
+        else capacity *= 2;
+        Element* new_elements = new Element[capacity];
+        for (int i = 0; i < current_size; i++) {
+            new_elements[i] = elements[i];
+        }
+        delete[] elements;
+        elements = new_elements;
+    }
+
+public:
+    Map() : elements(nullptr), current_size(0), capacity(0) {}
+    ~Map() {
+        delete[] elements;
+    }
+    VALUE& operator[](KEY key) 
+    {
+        for (int i = 0; i < current_size; i++) 
+        {
+            if (elements[i].key == key) return elements[i].value;
+        }
+        if (current_size == capacity) resize();
+
+        elements[current_size].key = key;
+        elements[current_size].index = current_size;
+        return elements[current_size++].value;
+    }
+    void Set(const KEY& key, const VALUE& value) 
+    {
+        (*this)[key] = value;
+    }
+    bool Get(const KEY& key, VALUE& value) 
+    {
+        for (int i = 0; i < current_size; i++) 
+        {
+            if (elements[i].key == key) 
+            {
+                value = elements[i].value;
+                return true;
+            }
+        }
+        return false;
+    }
+    int Count() const { return current_size; }
+    void Clear() {
+        current_size = 0;
+    }
+    bool Delete(const KEY& key) 
+    {
+        for (int i = 0; i < current_size; i++) 
+        {
+            if (elements[i].key == key) 
+            {
+                for (int j = i; j < current_size - 1; j++) 
+                {
+                    elements[j] = elements[j + 1];
+                    elements[j].index = j;
+                }
+                current_size--;
+                return true;
+            }
+        }
+        return false;
+    }
+    bool Includes(const Map<KEY, VALUE>& other) 
+    {
+        for (int i = 0; i < other.current_size; i++) 
+        {
+            bool found = false;
+            for (int j = 0; j < this->current_size; j++) 
+            {
+                if (other.elements[i].key == this->elements[j].key) 
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
+        }
+        return true;
+    }
+    struct Iterator 
+    {
+        Element* ptr;
+        bool operator!=(const Iterator& other) const { return ptr != other.ptr; }
+        void operator++() { ptr++; }
+        struct Item 
+        {
+            KEY k;
+            VALUE v;
+            int i;
+        };
+        Item operator*() 
+        {
+            return { ptr->key, ptr->value, ptr->index };
+        }
+    };
+    Iterator begin() { return { &elements[0] }; }
+    Iterator end() { return { &elements[current_size] }; }
+};
+
+int main()
+{
+    Map<int, const char*> m;
+    m[10] = "C++";
+    m[20] = "test";
+    m[30] = "Poo";
+    for (auto [key, value, index] : m)
+    {
+        printf("Index:%d, Key=%d, Value=%s\n", index, key, value);
+    }
+    m[20] = "result";
+    for (auto [key, value, index] : m)
+    {
+        printf("Index:%d, Key=%d, Value=%s\n", index, key, value);
+    }
+    return 0;
+}
