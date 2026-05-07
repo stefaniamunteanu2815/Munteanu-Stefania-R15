@@ -1,0 +1,225 @@
+#include <iostream>
+#include <exception>
+#include <algorithm>
+using namespace std;
+
+class IndexExceptie : public exception
+{
+    virtual const char* what() const throw() { return "Index invalid"; }
+};
+class CapacitateExceptie : public exception
+{
+    virtual const char* what() const throw() { return "Capacitate depasita"; }
+};
+class Compare
+{
+public:
+    virtual int CompareElements(void* e1, void* e2) = 0;
+};
+
+template<class T>
+class ArrayIterator
+{
+private:
+    T** List;
+    int Current;
+public:
+    ArrayIterator(T** list, int current) : List(list), Current(current) {}
+    ArrayIterator& operator ++ ()
+    {
+        Current++;
+        return *this;
+    }
+    ArrayIterator& operator -- ()
+    {
+        Current--;
+        return *this;
+    }
+    bool operator == (const ArrayIterator<T>& other)
+    {
+        return Current == other.Current;
+    }
+    bool operator != (const ArrayIterator<T>& other)
+    {
+        return Current != other.Current;
+    }
+    T* GetElement()
+    {
+        return List[Current];
+    }
+};
+template<class T>
+class Array
+{
+private:
+    T** List;
+    int Capacity;
+    int Size;
+public:
+    Array() : List(nullptr), Capacity(0), Size(0) {}
+    ~Array()
+    {
+        if (List)
+        {
+            for (int i = 0; i < Size; i++) delete List[i];
+            delete[] List;
+        }
+    }
+    Array(int capacity)
+    {
+        Capacity = capacity;
+        Size = 0;
+        List = new T * [Capacity];
+    }
+    Array(const Array<T>& otherArray)
+    {
+        Capacity = otherArray.Capacity;
+        Size = otherArray.Size;
+        List = new T * [Capacity];
+        for (int i = 0; i < Size; i++) List[i] = new T(*otherArray.List[i]);
+    }
+    T& operator[] (int index)
+    {
+        if (index < 0 || index >= Size) throw IndexExceptie();
+        return *(List[index]);
+    }
+    const Array<T>& operator+=(const T& newElem)
+    {
+        if (Size >= Capacity) throw CapacitateExceptie();
+        List[Size++] = new T(newElem);
+        return *this;
+    }
+    const Array<T>& Insert(int index, const T& newElem)
+    {
+        if (index < 0 || index > Size) throw IndexExceptie();
+        if (Size >= Capacity) throw CapacitateExceptie();
+        for (int i = Size; i > index; i--) List[i] = List[i - 1];
+        List[index] = new T(newElem);
+        Size++;
+        return *this;
+    }
+    const Array<T>& Insert(int index, const Array<T> otherArray)
+    {
+        if (index < 0 || index > Size) throw IndexExceptie();
+        if (Size + otherArray.Size > Capacity) throw CapacitateExceptie();
+        for (int i = Size - 1; i >= index; i--) List[i + otherArray.Size] = List[i];
+        for (int i = 0; i < otherArray.Size; i++) List[index + i] = new T(*otherArray.List[i]);
+        Size += otherArray.Size;
+        return *this;
+    }
+    const Array<T>& Delete(int index)
+    {
+        if (index < 0 || index >= Size) throw IndexExceptie();
+        delete List[index];
+        for (int i = index; i < Size - 1; i++) List[i] = List[i + 1];
+        Size--;
+        return *this;
+    }
+    bool operator=(const Array<T>& otherArray)
+    {
+        if (this == &otherArray) return true;
+        for (int i = 0; i < Size; i++) delete List[i];
+        delete[] List;
+        Capacity = otherArray.Capacity;
+        Size = otherArray.Size;
+        List = new T * [Capacity];
+        for (int i = 0; i < Size; i++) List[i] = new T(*otherArray.List[i]);
+        return true;
+    }
+    void Sort()
+    {
+        for (int i = 0; i < Size - 1; i++)
+            for (int j = i + 1; j < Size; j++)
+                if (*List[i] > *List[j]) swap(List[i], List[j]);
+    }
+    void Sort(int(*compare)(const T&, const T&))
+    {
+        for (int i = 0; i < Size - 1; i++)
+            for (int j = i + 1; j < Size; j++)
+                if (compare(*List[i], *List[j]) > 0) swap(List[i], List[j]);
+    }
+    void Sort(Compare* comparator)
+    {
+        for (int i = 0; i < Size - 1; i++)
+            for (int j = i + 1; j < Size; j++)
+                if (comparator->CompareElements(List[i], List[j]) > 0) swap(List[i], List[j]);
+    }
+    int BinarySearch(const T& elem)
+    {
+        int s = 0, d = Size - 1;
+        while (s <= d)
+        {
+            int m = s + (d - s) / 2;
+            if (*List[m] == elem) return m;
+            if (*List[m] < elem) s = m + 1;
+            else d = m - 1;
+        }
+        return -1;
+    }
+    int BinarySearch(const T& elem, int(*compare)(const T&, const T&))
+    {
+        int s = 0, d = Size - 1;
+        while (s <= d)
+        {
+            int m = s + (d - s) / 2;
+            int res = compare(*List[m], elem);
+            if (res == 0) return m;
+            if (res < 0) s = m + 1;
+            else d = m - 1;
+        }
+        return -1;
+    }
+    int BinarySearch(const T& elem, Compare* comparator)
+    {
+        int s = 0, d = Size - 1;
+        while (s <= d)
+        {
+            int m = s + (d - s) / 2;
+            int res = comparator->CompareElements(List[m], (void*)&elem);
+            if (res == 0) return m;
+            if (res < 0) s = m + 1;
+            else d = m - 1;
+        }
+        return -1;
+    }
+    int Find(const T& elem)
+    {
+        for (int i = 0; i < Size; i++) if (*List[i] == elem) return i;
+        return -1;
+    }
+    int Find(const T& elem, int(*compare)(const T&, const T&))
+    {
+        for (int i = 0; i < Size; i++) if (compare(*List[i], elem) == 0) return i;
+        return -1;
+    }
+    int Find(const T& elem, Compare* comparator)
+    {
+        for (int i = 0; i < Size; i++) if (comparator->CompareElements(List[i], (void*)&elem) == 0) return i;
+        return -1;
+    }
+    int GetSize() { return Size; }
+    int GetCapacity() { return Capacity; }
+    ArrayIterator<T> GetBeginIterator() { return ArrayIterator<T>(List, 0); }
+    ArrayIterator<T> GetEndIterator() { return ArrayIterator<T>(List, Size); }
+};
+int main()
+{
+    try
+    {
+        Array<int> a(10);
+        a += 50; a += 10; a += 30;
+        cout << "Marime: " << a.GetSize() << endl;
+        a.Sort();
+        for (auto it = a.GetBeginIterator(); it != a.GetEndIterator(); ++it)
+        {
+            cout << *it.GetElement() << " ";
+        }
+        cout << endl;
+        a.Delete(10);
+    }
+    catch (const exception& e)
+    {
+        cout << "Exceptie: " << e.what() << endl;
+    }
+    return 0;
+}
