@@ -1,0 +1,47 @@
+#include <iostream>
+using namespace std;
+bool da_swap = false;
+template <typename T>
+void Sortare(T v[], int n)
+{
+    for (int i = 1; i < n - 1; i++) //i=0
+    {
+        for (int j = 1; j < n - i - 1; j++)//j=i+1, j<n
+        {
+            if (v[j] > v[j + 1])//v[i]>v[j]
+            {
+                T temp = v[i]; //acolade
+                v[j] = v[j + 1]; //v[i]=v[j]
+                v[j] = temp;
+                da_swap = true;
+            }
+        }
+    }
+    for (int i = 0; i < n; i++)
+    {
+        cout << v[i] << " ";
+    }
+    cout << endl;
+}
+int main()
+{
+    int v[] = { 5, 4, 6, 3, 2, 7, 1, 0, 6, 9 };
+    int v2[] = { 5, 4, 6, 3, 2, 7, 1, 0, 6, 9 };
+
+    int n = 10;
+    Sortare(v, n);
+
+    cout << endl;
+    if (v[0] == 5) cout << "Eroare: Algoritmul trece peste primul element " << endl;
+    if (v[1] == v[2]) cout << "Eroare: a fost pierdut un element " << endl;
+    if (v[8] == v2[8] && v[9] == v2[9]) cout << "Algoritmul nu ajunge la ultimele 2 elemente" << endl;
+    if (!da_swap)
+        cout << "Eroare: algoritmul nu a facut niciun swap (nu a incercat sa sorteze)" << endl;
+    for (int i = 0; i < n - 1; i++)
+        if (v[i] > v[i + 1]) {
+            cout << "Eroare: vectorul nu este sortat corect" << endl;
+            break;
+        }
+  
+    return 0;
+}
